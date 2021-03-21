@@ -1,13 +1,6 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric, DeriveTraversable,
     FlexibleInstances, LambdaCase, MultiWayIf, OverloadedStrings, TupleSections #-}
 
--- a theorem prover for intuitionistic propositional logic,
--- based on:
--- Contraction-Free Sequent Calculi for Intuitionistic Logic
--- Author(s): Roy Dyckhoff
--- Source: The Journal of Symbolic Logic, Vol. 57, No. 3 (Sep., 1992), pp. 795-807
--- Published by: Association for Symbolic Logic
--- Stable URL: http://www.jstor.org/stable/2275431 
 module Main where
 
 import Control.Monad (forever, when, (>=>))
@@ -51,6 +44,7 @@ data Command
 main :: IO ()
 main = loop Map.empty Map.empty Map.empty
 
+-- TODO: use haskeline
 loop
     :: SymbolTable    -- maps strings to simple Nats
     -> Map Nat String -- maps Nats (interned strings) back to strings
@@ -159,6 +153,7 @@ cata f = f . fmap (cata f) . unroll
 -- multiset of Props
 -- we maintain the invariant that each Prop maps to its occurences + 1,
 -- so that we never have redundant prop => 0 entries
+-- TODO: the multiset is theoretically necessary but is it practically necessary?
 type Context = Map Prop Nat
 
 look :: Context -> Prop -> Nat
@@ -279,6 +274,7 @@ search
     |> listToMaybe
 
 -- budget parsec
+-- TODO: make this better
 type SymbolTable = Map String Nat
 
 data ParseState = ParseState
@@ -356,7 +352,7 @@ lexInput =
         ('&':ss)              -> consume And 1 ss
         ('|':ss)              -> consume Or  1 ss
         ('~':ss)              -> consume Not 1 ss
-        ('-':'>':ss)          -> consume Implies 1 ss
+        ('-':'>':ss)          -> consume Implies 2 ss
         ss | Just ss' <- stripPrefix "false" ss 
                               -> consume Falsum  5 ss'
         (c:ss) | isAlphaNum c -> Just . ID <$> lexID
